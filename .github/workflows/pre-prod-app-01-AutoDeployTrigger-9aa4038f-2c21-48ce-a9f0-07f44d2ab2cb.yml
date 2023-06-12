@@ -1,0 +1,42 @@
+name: Trigger auto deployment for pre-prod-app-01
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/pre-prod-app-01-AutoDeployTrigger-9aa4038f-2c21-48ce-a9f0-07f44d2ab2cb.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.PREPRODAPP01_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: abimbolacontainer.azurecr.io
+          registryUsername: ${{ secrets.PREPRODAPP01_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PREPRODAPP01_REGISTRY_PASSWORD }}
+          containerAppName: pre-prod-app-01
+          resourceGroup: test
+          imageToBuild: abimbolacontainer.azurecr.io/pre-prod-app-01:${{ github.sha }}
+          
+
+     
+
